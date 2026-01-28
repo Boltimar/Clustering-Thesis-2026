@@ -1,0 +1,2 @@
+# Unueberwachte-Baumartenklassifizierung-aus-multispektralen-Drohnenaufnahmen
+Diese Arbeit untersucht unüberwachte Baumartenklassifizierung mittels multispektraler Drohnenbilder. Der Vergleich zeigt: Mclust übertrifft k-means deutlich (ARI 0,274), besonders bei der Laub-/Nadelholz-Trennung. Auf Artniveau limitiert hohe Varianz die Genauigkeit. Für bessere Ergebnisse werden hybride Verfahren empfohlen.
