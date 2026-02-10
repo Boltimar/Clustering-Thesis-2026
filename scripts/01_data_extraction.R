@@ -1,13 +1,14 @@
 # -------------------------------------------------------------------------
-# Master Thesis: Unsupervised Tree Species Classification
-# Script 01: Data Extraction / Pre-Processing
-# Author: Christian Salzmann (2026)
+# Masterarbeit: Unüberwachte Baumartenklassifizierung
+# Skript 01: Extraktion der Spektralwerte (Zonale Statistik)
+# Autor: Christian Salzmann (2026)
 #
-# Description:
-# This script extracts spectral mean values from the multispectral orthophoto
-# for each segmented tree crown (polygon).
-# It handles CRS transformation and exports the data as a CSV file
-# which serves as input for the clustering algorithms.
+# WICHTIGER HINWEIS ZUR DATENGRUNDLAGE:
+# Die Vektordaten der Baumkronen ('Baumkronen.gpkg') sind nicht Teil dieses
+# Repositories. Sie stammen aus folgender Publikation:
+#
+# Quelle: Freudenberg, M., Magdon, P. & Nölke, N / Individual tree crown delineation in high-resolution remote sensing images based on U-Net
+# DOI:    https://doi.org/10.1007/s00521-022-07640-4
 # -------------------------------------------------------------------------
 
 # 1. Load Libraries
