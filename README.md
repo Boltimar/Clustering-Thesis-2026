@@ -1,4 +1,4 @@
-# Unueberwachte-Baumartenklassifizierung-aus-multispektralen-Drohnenaufnahmen
+# Unüberwachte Baumartenklassifizierung aus multispektralen Drohnenaufnahmen
 Diese Masterarbeit untersucht das Potenzial unüberwachter Klassifizierungsverfahren zur automatisierten Erkennung von Baumarten in komplexen Mischbeständen auf Basis hochaufgelöster, multispektraler Drohnenaufnahmen. Am Beispiel eines Waldgebiets der Realgemeinde Spanbeck (Niedersachsen) wurden Befliegungen mit einer Trinity Pro-Drohne durchgeführt, die Daten im sichtbaren Licht sowie im Red-Edge- und Nah-Infrarot-Bereich (NIR) lieferte.
 
 Im methodischen Fokus stand der Vergleich des distanzbasierten Algorithmus k-means mit dem modellbasierten Ansatz mclust (Gaussian Mixture Models). Die Analyse erfolgte auf Basis von Mittelwerten segmentierter Baumkronen. Die Ergebnisse zeigen eine deutliche Überlegenheit von mclust (ARI: 0,274) gegenüber k-means (ARI: 0,051). Während k-means aufgrund der Annahme sphärischer Cluster an der komplexen Datenstruktur scheiterte, konnte mclust durch flexible, elliptische Clusterformen die spektralen Signaturen besser abbilden.
