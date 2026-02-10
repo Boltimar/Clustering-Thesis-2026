@@ -1,0 +1,97 @@
+# -------------------------------------------------------------------------
+# Masterarbeit: Unüberwachte Baumartenklassifizierung
+# Skript 04: Mclust (Model-based Clustering)
+# Autor: Christian Salzmann (2026)
+# -------------------------------------------------------------------------
+
+# --- Schritt 1: R-Pakete installieren und laden ---
+# install.packages("terra")
+# install.packages("sf")
+# install.packages("mclust")
+# install.packages("ggplot2")
+
+library(terra)
+library(sf)
+library(mclust)
+library(ggplot2)
+print("Benötigte R-Pakete wurden erfolgreich geladen.")
+
+
+# --- Schritt 2: Dateipfade festlegen ---
+# HINWEIS FÜR GITHUB: Pfade wurden auf relative Ordner angepasst.
+# Bitte das Arbeitsverzeichnis auf den Projektordner setzen.
+
+# Wir definieren die Eingabedateien im Ordner "data"
+raster_file <- "data/multispektral_ortho_dsm_20052025_10cm_exthermo.tif"
+vector_file <- "data/Echte_BA.gpkg"
+
+# Wir definieren die Ausgabedatei im Ordner "results"
+if(!dir.exists("results")) dir.create("results")
+output_file <- "results/baumkronen_geclustert_mclust.gpkg"
+
+print(paste("Raster-Datei:", raster_file))
+print(paste("Vektor-Datei:", vector_file))
+print(paste("Ausgabe-Datei:", output_file))
+
+
+# --- Schritt 3: Daten einlesen ---
+print("Lese Rasterdatei ein...")
+raster_data <- rast(raster_file)
+
+print("Lese Vektordatei ein...")
+tree_crowns_sf <- st_read(vector_file, quiet = TRUE)
+
+
+# --- Schritt 4: Projektionen prüfen & anpassen ---
+if (st_crs(tree_crowns_sf) != st_crs(raster_data)) {
+  print("Projektionen stimmen nicht überein. Transformiere Baumkronen-CRS auf Raster-CRS...")
+  tree_crowns_sf <- st_transform(tree_crowns_sf, crs(raster_data))
+}
+
+
+# --- Schritt 5: Mittelwerte je Baumkrone berechnen ---
+print("Berechne spektrale Mittelwerte je Baumkrone...")
+mean_values <- extract(raster_data, tree_crowns_sf, fun = mean, na.rm = TRUE)
+
+# Entferne die erste Spalte (ID), falls vorhanden (terra::extract gibt ID als erste Spalte aus)
+data_for_clustering <- mean_values[, -1]
+
+# Entferne Zeilen mit NAs, falls welche vorkommen
+data_for_clustering <- na.omit(data_for_clustering)
+
+print(paste("Anzahl Baumkronen im Datensatz nach Bereinigung:", nrow(data_for_clustering)))
+
+
+# --- Schritt 6: Gaussian Mixture Model (Mclust) ---
+print("Starte Mclust-Clustering...")
+
+# Wir nutzen eine feste Anzahl von Clustern (G=7), wie in der Arbeit hergeleitet
+gmm_result <- Mclust(data_for_clustering, G = 7)
+
+print(paste("Optimale Clusterzahl laut Modell:", gmm_result$G))
+
+
+# --- Schritt 7: Cluster-IDs hinzufügen ---
+# Zuordnung der Klassifizierung zu den Geodaten
+tree_crowns_clustered <- tree_crowns_sf
+tree_crowns_clustered$cluster <- as.factor(gmm_result$classification)
+
+print("Cluster wurden den Baumkronen zugeordnet.")
+
+
+# --- Schritt 8: Ergebnis speichern ---
+print("Speichere geclusterten Datensatz...")
+st_write(tree_crowns_clustered, output_file, delete_layer = TRUE)
+print(paste("Gespeichert unter:", output_file))
+
+
+# --- Schritt 9: Visualisierung ---
+print("Visualisiere die Cluster...")
+p <- ggplot(data = tree_crowns_clustered) +
+  geom_sf(aes(fill = cluster)) +
+  ggtitle(paste("Mclust-GMM Clustering (G =", gmm_result$G, ")")) +
+  labs(fill = "Cluster-ID") +
+  theme_minimal() +
+  coord_sf(datum = NA)
+
+print(p)
