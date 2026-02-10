@@ -1,0 +1,106 @@
+# -------------------------------------------------------------------------
+# Master Thesis: Unsupervised Tree Species Classification
+# Script 02: Exploratory Spectral Analysis (Boxplots)
+# Author: Christian Salzmann (2026)
+#
+# Description:
+# This script visualizes the spectral separability of tree species/groups.
+# It generates boxplots to compare reflectance values across different bands.
+# -------------------------------------------------------------------------
+
+# 1. Load Libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readr)
+
+# --- CONFIGURATION & PATHS ---
+input_file <- "data/Echte_BA_mit_Spektralwerten.csv"
+output_dir <- "plots"
+
+# Create output directory for images if it doesn't exist
+if(!dir.exists(output_dir)) dir.create(output_dir)
+
+# -------------------------------------------------------------------------
+# 2. Load Data
+# -------------------------------------------------------------------------
+
+if (!file.exists(input_file)) {
+  stop("Error: Input file not found. Please run '01_data_extraction.R' first.")
+}
+
+print("Loading data...")
+df <- read_csv(input_file, show_col_types = FALSE)
+
+# -------------------------------------------------------------------------
+# 3. Data Preparation
+# -------------------------------------------------------------------------
+
+# Filter out NAs and "nicht zuweisbar" (unassignable)
+df_clean <- df %>%
+  filter(!is.na(BA_BWI), BA_BWI != "nicht zuweisbar")
+
+# Convert species column to factor
+df_clean$BA_BWI <- as.factor(df_clean$BA_BWI)
+
+# Define spectral bands (must match columns in CSV)
+spectral_bands <- c("rot", "gruen", "blau", "red_edge", "nir")
+
+print(paste("Data loaded for", n_distinct(df_clean$BA_BWI), "species categories."))
+
+# -------------------------------------------------------------------------
+# 4. Analysis 1: Boxplots by Band
+# (Compare all species within one spectral band)
+# -------------------------------------------------------------------------
+
+print("Generating Boxplots by Band...")
+
+# Reshape data to long format
+df_long_band <- df_clean %>%
+  select(BA_BWI, all_of(spectral_bands)) %>%
+  pivot_longer(cols = all_of(spectral_bands), 
+               names_to = "Band", 
+               values_to = "Reflectance")
+
+# Create Plot
+p1 <- ggplot(df_long_band, aes(x = BA_BWI, y = Reflectance, fill = BA_BWI)) +
+  geom_boxplot() +
+  facet_wrap(~Band, scales = "free_y") + 
+  labs(title = "Spectral Reflectance by Band",
+       x = "Tree Species / Group",
+       y = "Mean Reflectance",
+       fill = "Species") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Save Plot
+ggsave(file.path(output_dir, "01_boxplot_by_band.png"), p1, width = 10, height = 7)
+
+
+# -------------------------------------------------------------------------
+# 5. Analysis 2: Boxplots by Species
+# (Show the spectral signature for each species)
+# -------------------------------------------------------------------------
+
+print("Generating Boxplots by Species...")
+
+# Ensure correct order of bands (wavelength)
+df_long_band$Band <- factor(df_long_band$Band, 
+                            levels = c("rot", "gruen", "blau", "red_edge", "nir"))
+
+# Create Plot
+p2 <- ggplot(df_long_band, aes(x = Band, y = Reflectance, fill = Band)) +
+  geom_boxplot() +
+  facet_wrap(~ BA_BWI, scales = "free_y") + # One panel per species
+  labs(title = "Spectral Signatures by Species",
+       x = "Spectral Band",
+       y = "Mean Reflectance",
+       fill = "Band") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Save Plot
+ggsave(file.path(output_dir, "02_boxplot_by_species.png"), p2, width = 10, height = 7)
+
+print("---")
+print(paste("Analysis complete. Plots saved in folder:", output_dir))
